@@ -21,7 +21,7 @@ func ExportRsaPrivateKeyAsPemStr(privkey *rsa.PrivateKey) string {
 	privkeyBytes := x509.MarshalPKCS1PrivateKey(privkey)
 	privkeyPem := pem.EncodeToMemory(
 		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
+			Type:  "PRIVATE KEY",
 			Bytes: privkeyBytes,
 		},
 	)
@@ -44,24 +44,30 @@ func ParseRsaPrivateKeyFromPemStr(privPEM string) (*rsa.PrivateKey, error) {
 }
 
 // ExportRsaPublicKeyAsPemStr exports the public key as PEM encoded string
-func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) string {
+func ExportRsaPublicKeyAsPemStr(pubkey *rsa.PublicKey) (string, error) {
 	// err can never be non-nil at this point, as marshalPKIXPublicKey only throws on unknown keys
 	// whereas rsa.PublicKey is well-known
-	pubkeyBytes := x509.MarshalPKCS1PublicKey(pubkey)
+	pubkeyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
+	if err != nil {
+		return "", err
+	}
 	pubkeyPem := pem.EncodeToMemory(
 		&pem.Block{
-			Type:  "RSA PUBLIC KEY",
+			Type:  "PUBLIC KEY",
 			Bytes: pubkeyBytes,
 		},
 	)
 
-	return string(pubkeyPem)
+	return string(pubkeyPem), nil
 }
 
 // ExportPubKeyBase64 converts a RSA Public key into the base64 representation
-func ExportPubKeyBase64(pubkey *rsa.PublicKey) string {
-	pubkeyBytes := x509.MarshalPKCS1PublicKey(pubkey)
-	return base64.StdEncoding.EncodeToString(pubkeyBytes)
+func ExportPubKeyBase64(pubkey *rsa.PublicKey) (string, error) {
+	pubkeyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(pubkeyBytes), nil
 }
 
 // ParseRsaPublicKeyFromPemStr parses the given PEM encoded string into a go rsa key.

@@ -69,26 +69,32 @@ func processDomains(domains domainKeySet) map[string]domainConfig {
 		if pub == nil {
 			pub = &priv.PublicKey
 		}
-		pubContents := ExportRsaPublicKeyAsPemStr(pub)
-		if e := ioutil.WriteFile(pubkeyFile, []byte(pubContents), 0600); e != nil {
+		if pubContents, e := ExportRsaPublicKeyAsPemStr(pub); e != nil {
+			domLog.WithError(e).Error("Failed to export public key")
+			continue
+		} else if e := ioutil.WriteFile(pubkeyFile, []byte(pubContents), 0600); e != nil {
 			domLog.WithError(e).Error("Failed to write public key")
 			continue
 		}
 
-		pubKeyFoo := ExportPubKeyBase64(pub)
-		recordContents := fmt.Sprintf("v=DKIM1; k=rsa; p=%s", pubKeyFoo)
-		if e := ioutil.WriteFile(recordFile, []byte(recordContents), 0600); e != nil {
+		if pubKeyFoo, e := ExportPubKeyBase64(pub); e != nil {
 			domLog.WithError(e).Error("Failed to write record file")
 			continue
-		}
+		} else {
+			recordContents := fmt.Sprintf("v=DKIM1; k=rsa; p=%s", pubKeyFoo)
+			if e := ioutil.WriteFile(recordFile, []byte(recordContents), 0600); e != nil {
+				domLog.WithError(e).Error("Failed to write record file")
+				continue
+			}
 
-		res[domain] = domainConfig{
-			key:      priv,
-			pub:      pub,
-			txt:      recordContents,
-			privPath: privkeyFile,
-			pubPath:  pubkeyFile,
-			txtPath:  recordFile,
+			res[domain] = domainConfig{
+				key:      priv,
+				pub:      pub,
+				txt:      recordContents,
+				privPath: privkeyFile,
+				pubPath:  pubkeyFile,
+				txtPath:  recordFile,
+			}
 		}
 	}
 	return res
