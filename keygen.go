@@ -43,7 +43,7 @@ func processDomains(domains domainKeySet) map[string]domainConfig {
 		var priv *rsa.PrivateKey
 		var pub *rsa.PublicKey
 
-		if err := os.MkdirAll(path.Join(viper.GetString("TARGET_PATH"), domain), 0700); err != nil {
+		if err := os.MkdirAll(path.Join(viper.GetString("TARGET_PATH"), domain), 0770); err != nil {
 			domLog.WithError(err).Error("Could not create key directory")
 			continue
 		}
@@ -52,7 +52,7 @@ func processDomains(domains domainKeySet) map[string]domainConfig {
 			domLog.Info("private key not found, generating key pair")
 			priv, pub = GenerateRsaKeyPair(bitSize)
 			privContents := ExportRsaPrivateKeyAsPemStr(priv)
-			if e := ioutil.WriteFile(privkeyFile, []byte(privContents), 0600); e != nil {
+			if e := ioutil.WriteFile(privkeyFile, []byte(privContents), 0660); e != nil {
 				domLog.WithError(e).Error("Failed to write private key")
 				continue
 			}

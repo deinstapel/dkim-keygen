@@ -21,7 +21,7 @@ func ExportRsaPrivateKeyAsPemStr(privkey *rsa.PrivateKey) string {
 	privkeyBytes := x509.MarshalPKCS1PrivateKey(privkey)
 	privkeyPem := pem.EncodeToMemory(
 		&pem.Block{
-			Type:  "PRIVATE KEY",
+			Type:  "RSA PRIVATE KEY",
 			Bytes: privkeyBytes,
 		},
 	)
